@@ -1,0 +1,18 @@
+version: '3'
+services:
+  sqoop:
+    image: my-sqoop:latest
+    container_name: sqoop
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - SQOOP_HOME=/opt/sqoop
+    command: [ "/bin/bash", "-c", "echo 'Sqoop container started'; while true; do sleep 3600; done" ]
+    networks:
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.10  # choose an IP within the network range
+    restart: always
+
+networks:
+  hadoop_shared_net:
+    external: true

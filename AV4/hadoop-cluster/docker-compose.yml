@@ -4,7 +4,6 @@ services:
     image: apache/hadoop:3.4.1
     container_name: namenode
     hostname: namenode
-    user: root
     environment:
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
@@ -12,20 +11,18 @@ services:
       - ./namenode:/opt/hadoop/data/nameNode
       - ./config:/opt/hadoop/etc/hadoop
       - ./start-hdfs.sh:/start-hdfs.sh
-      - ./config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
     ports:
       - "9870:9870"
     command: [ "/bin/bash", "/start-hdfs.sh" ]
-    restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.2
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.2
+    restart: always
 
   datanode1:
     image: apache/hadoop:3.4.1
     container_name: datanode1
     hostname: datanode1
-    user: root
     environment:
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
@@ -33,20 +30,18 @@ services:
       - ./datanode1:/opt/hadoop/data/dataNode
       - ./config:/opt/hadoop/etc/hadoop
       - ./init-datanode.sh:/init-datanode.sh
-      - ./config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
     depends_on:
       - namenode
     command: [ "/bin/bash", "/init-datanode.sh" ]
-    restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.3
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.3
+    restart: always
 
   datanode2:
     image: apache/hadoop:3.4.1
     container_name: datanode2
     hostname: datanode2
-    user: root
     environment:
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
@@ -54,20 +49,18 @@ services:
       - ./datanode2:/opt/hadoop/data/dataNode
       - ./config:/opt/hadoop/etc/hadoop
       - ./init-datanode.sh:/init-datanode.sh
-      - ./config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
     depends_on:
       - namenode
     command: [ "/bin/bash", "/init-datanode.sh" ]
-    restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.4
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.4
+    restart: always
 
   datanode3:
     image: apache/hadoop:3.4.1
     container_name: datanode3
     hostname: datanode3
-    user: root
     environment:
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
@@ -75,18 +68,76 @@ services:
       - ./datanode3:/opt/hadoop/data/dataNode
       - ./config:/opt/hadoop/etc/hadoop
       - ./init-datanode.sh:/init-datanode.sh
-      - ./config/log4j.properties:/opt/hadoop/etc/hadoop/log4j.properties
     depends_on:
       - namenode
     command: [ "/bin/bash", "/init-datanode.sh" ]
-    restart: always
     networks:
-      hdfs_network:
-        ipv4_address: 172.30.0.5
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.5
+    restart: always
+
+  resourcemanager:
+    image: apache/hadoop:3.4.1
+    container_name: resourcemanager
+    hostname: resourcemanager
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+    ports:
+      - "8088:8088"
+    command: [ "/bin/bash", "-c", "yarn resourcemanager" ]
+    networks:
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.11
+    restart: always
+
+  nodemanager:
+    image: apache/hadoop:3.4.1
+    container_name: nodemanager
+    hostname: nodemanager
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+    command: [ "/bin/bash", "-c", "yarn nodemanager" ]
+    networks:
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.12
+    restart: always
+
+  jobhistory:
+    image: apache/hadoop:3.4.1
+    container_name: jobhistory
+    hostname: jobhistory
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./config:/opt/hadoop/etc/hadoop
+    ports:
+      - "19888:19888"
+    command: [ "/bin/bash", "-c", "mapred historyserver" ]
+    networks:
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.13
+    restart: always
+
+  sqoop:
+    image: my-sqoop:latest
+    container_name: sqoop
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+      - SQOOP_HOME=/opt/sqoop
+    command: [ "/bin/bash", "-c", "echo 'Sqoop container started'; while true; do sleep 3600; done" ]
+    networks:
+      hadoop_shared_net:
+        ipv4_address: 172.31.0.10
+    restart: always
 
 networks:
-  hdfs_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.30.0.0/24
+  hadoop_shared_net:
+    external: true
