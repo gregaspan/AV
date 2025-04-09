@@ -1,0 +1,5 @@
+Line 1: This is a sample file.
+Line 2: Demonstrating HDFS.
+Line 3: More content here.
+Line 4: Even more text.
+Line 5: Final line of sample text.
